@@ -50,7 +50,7 @@ body {
     border: 2px solid #ddd;
     padding: 3px;
     background-color: #fff;
-    display: none;
+    display: block;
 }
 .movie-details .movie-info {
     margin-right: 150px;

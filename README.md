@@ -27,7 +27,7 @@ Follow these steps to set up the development environment:
 Run the FilmFinder HTTP Server.
 The server will start running on port 35000 by default.
 
-You can test the server by opening a web browser and navigating to http://localhost:35000.
+You can test the server by opening a web browser and navigating to http://localhost:35000/index.html
 
 ### Built With
 - Java - Programming language

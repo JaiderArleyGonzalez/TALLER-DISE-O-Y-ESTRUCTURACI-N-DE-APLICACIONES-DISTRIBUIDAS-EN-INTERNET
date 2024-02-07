@@ -1,4 +1,19 @@
 let cache = new Map();
+document.addEventListener("DOMContentLoaded", function() {
+    var posterImg = document.getElementById("posterImg");
+    var noPosterMsg = document.getElementById("noPoster");
+    var posterContainer = document.querySelector(".poster-container");
+
+    posterImg.onload = function() {
+        posterContainer.style.display = "block";
+        noPosterMsg.style.display = "none";
+    };
+
+    posterImg.onerror = function() {
+        posterContainer.style.display = "none";
+        noPosterMsg.style.display = "block";
+    };
+});
 function loadGetMsg() {
     let titleVar = document.getElementById("title").value;
     let typeVar = document.getElementById("type").value;

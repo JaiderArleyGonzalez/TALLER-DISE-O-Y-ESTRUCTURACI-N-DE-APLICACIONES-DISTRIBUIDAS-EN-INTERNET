@@ -116,7 +116,9 @@ public class HttpServer {
             contentType = "text/css";
         } else if (uriRequest.getPath().endsWith("js")) {
             contentType = "application/javascript";
-        } else {
+        } else if (uriRequest.getPath().endsWith("png")) {
+            contentType = "image/png";
+        }else {
             contentType = "text/plain";
         }
     
