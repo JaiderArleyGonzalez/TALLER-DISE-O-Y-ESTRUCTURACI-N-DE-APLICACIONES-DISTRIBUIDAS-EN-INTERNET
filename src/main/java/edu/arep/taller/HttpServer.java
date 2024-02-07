@@ -54,39 +54,38 @@ public class HttpServer {
      * Handles the client request.
      * @throws URISyntaxException 
      */
-    private void handleClientRequest() throws URISyntaxException {
+    public void handleClientRequest() throws URISyntaxException {
         try (Socket clientSocket = serverSocket.accept();
-             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+             OutputStream outputStream = clientSocket.getOutputStream();
              BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
-
-            String inputLine, outputLine;
-            boolean firstLine = true;
+    
+            String inputLine;
             String uriStr = "";
-
+    
             while ((inputLine = in.readLine()) != null) {
-                if (firstLine) {
-                    uriStr = inputLine.split(" ")[1];
-                    firstLine = false;
-                }
-                System.out.println("Received: " + inputLine);
-                if (!in.ready()) {
+                if (inputLine.isEmpty()) {
                     break;
                 }
+                if (uriStr.isEmpty()) {
+                    uriStr = inputLine.split(" ")[1];
+                }
             }
-
+    
             URI requestUri = new URI(uriStr);
-
+    
             try {
-                outputLine = httpResponse(requestUri);
-            }catch (Exception e){
-                outputLine = httpError();
+                httpResponse(requestUri, outputStream);
+            } catch (Exception e) {
+                e.printStackTrace();
+                String errorResponse = httpError();
+                outputStream.write(errorResponse.getBytes());
+                outputStream.flush();
             }
-            out.println(outputLine);
-
         } catch (IOException e) {
             System.err.println("Error handling client request: " + e.getMessage());
         }
     }
+    
     /**
      * Stops the HTTP server.
      */
@@ -102,31 +101,35 @@ public class HttpServer {
     /**
      * Generates HTML content for the HTTP response.
      *
-     * @return the HTML content
+     * @param uriRequest the requested URI
+     * @param outputStream the output stream to write the response to
+     * @throws IOException if an I/O error occurs
      */
-    public static String httpResponse(URI uriResquest) throws IOException {
-
-        String outputLine = "HTTP/1.1 200 OK\r\n"
-                + "Content-Type:text/html\r\n"
-                + "\r\n";
-        
-        Path file = Paths.get("target/classes/edu/arep/taller/resources" + uriResquest.getPath());
-
-        Charset charset = Charset.forName("UTF-8");
-
-        BufferedReader reader = Files.newBufferedReader(file, charset);
-
-        String line = null;
-
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-            outputLine += line;
+    public static void httpResponse(URI uriRequest, OutputStream outputStream) throws IOException {
+        Path filePath = Paths.get("src/main/resources" + uriRequest.getPath());
+        byte[] fileBytes = Files.readAllBytes(filePath);
+    
+        String contentType;
+        if (uriRequest.getPath().contains("html")) {
+            contentType = "text/html";
+        } else if (uriRequest.getPath().contains("css")) {
+            contentType = "text/css";
+        } else if (uriRequest.getPath().endsWith("js")) {
+            contentType = "application/javascript";
+        } else {
+            contentType = "text/plain";
         }
-
-
-        return outputLine;
-
+    
+        String responseHeader = "HTTP/1.1 200 OK\r\n" +
+                                "Content-Type: " + contentType + "\r\n" +
+                                "Content-Length: " + fileBytes.length + "\r\n" +
+                                "\r\n";
+        
+        outputStream.write(responseHeader.getBytes());
+        outputStream.write(fileBytes);
+        outputStream.flush();
     }
+    
     private static String httpError() {
         String outputLine = "HTTP/1.1 400 Not Found\r\n"
                 + "Content-Type:text/html\r\n"
